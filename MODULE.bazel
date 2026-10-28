@@ -1,0 +1,49 @@
+module(
+    name = "coherence",
+    version = "0.1.0",
+)
+
+bazel_dep(name = "rules_cc", version = "0.2.17")
+bazel_dep(name = "platforms", version = "1.0.0")
+bazel_dep(name = "rules_pkg", version = "1.3.0")
+bazel_dep(name = "tetro_toolchain", version = "0.5.0")
+bazel_dep(name = "ttx", version = "0.5.0")
+archive_override(
+    module_name = "tetro_toolchain",
+    sha256 = "7ac4907656d23993b1912982e25741277e79f42ddc0a2792052f9acaa9a5b57b",
+    urls = ["https://github.com/tetrodotoxin-dev/Toolchain/releases/download/v0.5.0/tetro_toolchain-0.5.0-source.tar.gz"],
+)
+local_path_override(module_name = "ttx", path = "../ttx")
+
+register_toolchains("@tetro_toolchain//:cc_toolchain_for_linux_x86_64", "@tetro_toolchain//:cc_toolchain_for_wasm32", "@tetro_toolchain//:cc_toolchain_for_wasm32_runner", "@tetro_toolchain//:cc_toolchain_for_windows_x64")
+
+sdks = use_extension("@tetro_toolchain//source/bazel:sdk.bzl", "dependencies")
+
+_PERIMORTEM_ARCHIVES = {
+    "headers": "fe0b8ed404ad5dcb333761e8f641b8fe1b73a82f8a9568019b43d39883689369",
+    "linux-x86_64-v3-static": "54c24c6a02f04eeb1da34d9dea87302ca9e25983dceebede25c7937b4b3a7ee6",
+    "linux-x86_64-v3-shared": "fcb56691a556fd6d49029a9c3238865797666d93b3f4b5a182c020337a776fe1",
+    "windows-x86_64-msvc-static": "5b758ad0c0dcdd05cfa960ca79bd4912cb23cb70c5ac723ac0b578eddba6d617",
+    "windows-x86_64-msvc-shared": "6be7c075a213dc4f6040322ef2e32e43ee2eb2efc45eb04613a3fbb0b565ac8c",
+    "wasm32-emscripten-static": "0eb4422a6175e5adaedba7693a91cb3b53cbccbb98a99cd4e46f6ca45d82db46",
+    "wasm32-emscripten-shared": "96375f5c7e64e0cb85a909244ce5d747720c96bd320042cf28133406036f4bf2",
+}
+
+sdks.release(
+    name = "perimortem",
+    archives = _PERIMORTEM_ARCHIVES,
+    linkage = "shared",
+    project = "Perimortem",
+    version = "0.5.0",
+    deps = [],
+)
+sdks.release(
+    name = "perimortem_static",
+    archives = _PERIMORTEM_ARCHIVES,
+    library = "perimortem",
+    linkage = "static",
+    project = "Perimortem",
+    version = "0.5.0",
+    deps = [],
+)
+use_repo(sdks, "perimortem", "perimortem_static")
